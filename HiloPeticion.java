@@ -4,29 +4,34 @@ import ssoo.telemetría.Encargo;
 import ssoo.telemetría.estación.Estación;
 import ssoo.telemetría.estación.Petición;
 
-public class HiloPeticion extends Thread{
+public class HiloPeticion implements Runnable {
 
-    private Petición peticion;
+    private final Petición peticion;
+    private final ColaTrabajos colaTrabajos;
 
-    public HiloPeticion(Petición peticion){
-        this.peticion = peticion;
+    public HiloPeticion(Petición peticion, 
+                ColaTrabajos colaTrabajos) {
+        this.peticion = peticion; 
+        this.colaTrabajos = colaTrabajos;   
     }
     @Override
-    public void run(){
-        //P1 Mostrar datos del encargo y de la estacion
+    public void run() {
         Encargo encargo = peticion.getEncargo();
         Estación estacion = peticion.getEstación();
-        System.out.println("El titulo del encargo es:"+ encargo.getTítulo() +
-        ", la estacion se llama "+ estacion.getNombre());
-        
-        //P2 espera de 5 segundos
+        //P1 Datos del encargo y estación
+        System.out.println("Datos del encargo de la peticion recibida: " + encargo.getTítulo()
+                +", nombre de la estación de la petición:"+ estacion.getNombre());
+        //P2 Espera activa de 5 segundos
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        //P3 Mostrar mensaje de despedida
-        System.out.println("El hilo:"+Thread.currentThread().getName()+" ha terminado, adios!");
+        //P3 Mensaje de despedida
+        System.out.println("Termina hilo: "+Thread.currentThread().getName()
+                         + ": Petición procesada. Adiós!");
+        Trabajo trabajo = new Trabajo (peticion);
+        colaTrabajos.put(trabajo);
     }
+    
 }
