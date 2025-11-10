@@ -1,6 +1,12 @@
 package Fase1;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ssoo.telemetría.Encargo;
+import ssoo.telemetría.Informe;
+import ssoo.telemetría.Telemetría;
+import ssoo.telemetría.Índice;
 import ssoo.telemetría.estación.Estación;
 import ssoo.telemetría.estación.Petición;
 
@@ -16,22 +22,37 @@ public class HiloPeticion implements Runnable {
     }
     @Override
     public void run() {
-        Encargo encargo = peticion.getEncargo();
-        Estación estacion = peticion.getEstación();
-        //P1 Datos del encargo y estación
-        System.out.println("Datos del encargo de la peticion recibida: " + encargo.getTítulo()
-                +", nombre de la estación de la petición:"+ estacion.getNombre());
-        //P2 Espera activa de 5 segundos
         try {
-            Thread.sleep(5000);
+            //P1 analizar el encargo y generar los trabajos
+            Encargo encargo = peticion.getEncargo();
+            List<Telemetría> listaTelemetrías = encargo.getTelemetrías();
+            //Crear lista para guardar los trabajos generados
+            List<Trabajo> listaTrabajos =  new ArrayList<Trabajo>();
+            for(Telemetría telemetría : listaTelemetrías){
+                Trabajo trabajo = new Trabajo (telemetría);
+                //P2 encolar los trabajos generados
+                colaTrabajos.put(trabajo);
+                listaTrabajos.add(trabajo);
+            }
+            //P3 esperar a que se analicen todos los trabajos
+            //y guardar las telemetrías analizadas
+            List<Telemetría> listaTelemetríasAnalizadas 
+                = new ArrayList<Telemetría>();
+            for(Trabajo trabajo : listaTrabajos){
+                listaTelemetríasAnalizadas.add(
+                    trabajo.getTelemetríaAnalizada());
+            }
+            //P4 enviar informe
+            String titulo = "informe-"+encargo.getTítulo();
+            Índice índice = new Índice(listaTelemetríasAnalizadas);
+            Informe informe = new Informe(titulo, índice, 
+                listaTelemetríasAnalizadas);
+            //P5 enviar el informe a la estación
+            Estación estación = peticion.getEstación();
+            estación.enviar(informe);
         } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        //P3 Mensaje de despedida
-        System.out.println("Termina hilo: "+Thread.currentThread().getName()
-                         + ": Petición procesada. Adiós!");
-        Trabajo trabajo = new Trabajo (peticion);
-        colaTrabajos.put(trabajo);
     }
-    
 }
